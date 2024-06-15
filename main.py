@@ -4,13 +4,16 @@ from widget import *
 
 ############################## Criteria ##############################
 
-max_upload_files = FileUploader.max_upload_files
+max_upload_files = FileUploader().max_upload_files
+key_upload_files = FileUploader().key_upload_files
 
-min_link_inputs = LinkInput.min_link_inputs
-max_link_inputs = LinkInput.max_link_inputs
+min_link_inputs = LinkInput().min_link_inputs
+max_link_inputs = LinkInput().max_link_inputs
+key_link_inputs = LinkInput().key_link_inputs
 
-key_upload_files = FileUploader.key_upload_files
-key_link_inputs = LinkInput.key_link_inputs
+extractTable_obj = ExtractTable()
+
+submit_button_obj = SubmitButton()
 
 ############################## UI ##############################
 
@@ -23,9 +26,6 @@ if key_link_inputs not in st.session_state:
 link_amount = st.session_state[key_link_inputs]
 file_amount = st.session_state[key_upload_files]
 
-# def link_amount_state(link_amount):
-#     st.session_state[key_link_inputs] = link_amount
-
 st.markdown("<h1 style='text-align: center;'>Table Extraction tools</h1>", unsafe_allow_html=True)
 st.warning("Please paste link or file at least 1", icon="⚠️")
 
@@ -33,7 +33,7 @@ col1, col2 = st.columns(2)
 
 ################ File uploader ####################
 with col1:
-    uploaded_files = st.file_uploader(label="Choose a file",
+    uploaded_files = st.file_uploader(label=f"Choose your files (Max : {max_upload_files})",
                                     type=['png', 'jpg','jpeg','pdf','docx','pptx'],
                                     accept_multiple_files=True)
 
@@ -46,16 +46,19 @@ with col1:
 
 with col2:   
 
-    st.write(st.session_state)
-    
+    # st.write(st.session_state)
+    st.caption(f'Choose your urls (Max : {max_link_inputs})')
+
+    with st.container(height = 100):
+        for key in range(1,link_amount+1):
+            st.text_input(f"Url {key}",key=f'link_{key}') 
+
     col3, col4 = st.columns(2)
     with col3:
         if st.button("Add Link Input",
                      disabled=link_amount==max_link_inputs):
             if link_amount < max_link_inputs:
                 st.session_state[key_link_inputs] += 1 ############# Solution 
-            else:
-                st.warning(f"Can't allow more than {max_link_inputs} link inputs.", icon="🚨")
             st.rerun()
 
     with col4:
@@ -65,41 +68,28 @@ with col2:
                 st.session_state[key_link_inputs] -= 1
             st.rerun()
 
-    with st.container(height = 100):
-        for key in range(1,link_amount+1):
-            st.text_input("Paste a link",key=f'link_{key}') 
+    disabled_SubmitButton = submit_button_obj.disabled(st.session_state,link_amount)
 
-    st.write(st.session_state)
+    # แจ้งเตือนครั้งเดียวพอ 
+    if link_amount == max_link_inputs:
+        st.toast(f"You can add link inputs up to {max_link_inputs} maximum.", icon="🚨")
 
-    disabled_SubmitButton = SubmitButton.disabled(st.session_state,link_amount)
+    # st.write(st.session_state)
 
 st.button('Submit',
-          disabled = disabled_SubmitButton)
-        #   on_click=ExtractTable().run(uploaded_files,currentState))
+          disabled = disabled_SubmitButton,
+          on_click = lambda: extractTable_obj.run(uploaded_files,st.session_state,disabled_SubmitButton)) # Solution 
 
-#### Next Step : แก้ logic UI (link_key ไม่ยอมหาย)
+############################ Test & Next Steps ###########################
+#### Next Step : หาวิธีส่ง result ไปที่ some directory in each user x
 
-#### Next Step : Logic read_html 
+#### Next Step : design logic Loading page 
 
-#### Next Step : Export File in Diff excel name and download path ทำยังไวให้ชื่อมันไม่ซ้ำกันแน่ ๆ (ชื่อ file เดิม + id something?)
+#### Next Step : ส่งเสร็จแล้ว ขึ้น (Finish) มีปุ่มให้เลือกว่า 'Click this button if you want to extract more' -> เมื่อ click กลับไปหน้าแรก 
 
+#### Next Step : # แจ้งเตือน toast ครั้งเดียวพอ 
 
-#####################################
+#### Test case : 
+# 1.file 2 , link 3 ว่าง 1 ถูก 1 ผิด 1 
 
-# import streamlit as st
-# import pandas as pd
-
-# if 'name' not in st.session_state:
-#     st.session_state['name'] = 'John Doe'
-
-# st.write(st.session_state)
-
-# if st.button('Jane'):
-#     st.session_state['name'] = 'Jane Doe'
-#     st.rerun()
-
-# if st.button('John'):
-#     st.session_state['name'] = 'John Doe'
-#     st.rerun()
-
-# st.write(st.session_state)
+###########################################################################################

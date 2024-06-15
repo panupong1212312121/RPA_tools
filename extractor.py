@@ -71,37 +71,49 @@ class ExtractTable:
     
     def link(self,currentState):
         dfs = {}
-        for link_name in currentState:
-            if 'link' in link_name:
+        for key in currentState:
+            if 'link' in key and 'amount' not in key:
                 # ถ้า link ผิด -> เตือน , ไม่เจอ table  
                 try:
-                    df = pd.read_html(link_name)
-                    dfs[link_name] = df
-                except requests.exceptions.HTTPError as err:
-                    print(f'{link_name} is invalid name')
+                    url_name = currentState[key]
+                    df = pd.read_html(url_name)
+                    dfs[key] = df
+                # except requests.exceptions.HTTPError as err:
+                except:
+                    print(f'{url_name} is invalid name')
         return dfs
         
-    def run(self,uploaded_files,currentState):
-        for file in uploaded_files:
-            extractTable_obj = ExtractTable()
-            transform_obj = Transformer()
+    def run(self,uploaded_files,currentState,all_null):
+        transform_obj = Transformer()
+        ############## Loading Pages ################
 
-            filename_input = file.name
-            file_extension = file.type.split('/')[-1].lower()
 
-            # print(file_extension)
 
-            file_afterTransfrom = transform_obj.fileUtil(file,filename_input)
+        ################################################
+        if len(uploaded_files)>0:
+            for file in uploaded_files:
 
-            if file_extension in ['png', 'jpg','jpeg']:
-                data = extractTable_obj.image(file_afterTransfrom)
-            elif file_extension in ['pdf']:
-                data = extractTable_obj.pdf(file,file_afterTransfrom)
-            elif file_extension in ['vnd.openxmlformats-officedocument.wordprocessingml.document']:
-                data = extractTable_obj.docx(file_afterTransfrom)
-            elif file_extension in ['vnd.openxmlformats-officedocument.presentationml.presentation']:
-                data = extractTable_obj.pptx(file_afterTransfrom)
-            elif LinkInput.is_null(currentState) == False:
-                data = extractTable_obj.link(currentState)
+                filename_input = file.name
+                file_extension = file.type.split('/')[-1].lower()
+
+                file_afterTransfrom = transform_obj.fileUtil(file,filename_input)
+
+                if file_extension in ['png', 'jpg','jpeg']:
+                    data = self.image(file_afterTransfrom)
+                elif file_extension in ['pdf']:
+                    data = self.pdf(file,file_afterTransfrom)
+                elif file_extension in ['vnd.openxmlformats-officedocument.wordprocessingml.document']:
+                    data = self.docx(file_afterTransfrom)
+                elif file_extension in ['vnd.openxmlformats-officedocument.presentationml.presentation']:
+                    data = self.pptx(file_afterTransfrom)
+
+                transform_obj.toExcel(data,file_extension,filename_input)
+
+        if len(currentState)>2 and all_null==False:
+            data = self.link(currentState)
+
+            transform_obj.toExcel(data)
+
             
-            transform_obj.toExcel(data,file_extension)
+            
+        

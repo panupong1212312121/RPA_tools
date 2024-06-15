@@ -5,11 +5,10 @@ class FileUploader:
 class LinkInput:
     min_link_inputs = 0
     max_link_inputs = 3
+    
     key_link_inputs = 'link_amount'
-    key_click_add_amount = 'click_add_amount'
-    key_click_remove_amount = 'click_remove_amount'
 
-    def is_all_null(currentState,link_amount):
+    def allNull(self,currentState,link_amount):
         if link_amount!=0:
             for key in currentState:
                 if 'link' in key and 'amount' not in key:
@@ -18,34 +17,26 @@ class LinkInput:
             return True
         else:
             return False
-
-class AddLinkButton:
-    key_add_link_button = 'add_link_button'
-    
-    def disabled(link_amount):
-        if link_amount==LinkInput().max_link_inputs:
-            return True
-        else:
-            return False
-        
-class RemoveLinkButton:
-    key_remove_link_button = 'remove_link_button'
-    
-    def disabled(link_amount):
-        if link_amount==LinkInput().min_link_inputs:
-            return True
-        else:
-            return False
-    
 class SubmitButton:
 
-    def disabled(currentState,link_amount):
-        is_null = LinkInput.is_all_null(currentState,link_amount)
-        if currentState['file_amount'] > FileUploader.max_upload_files or \
-            (currentState['file_amount'] == 0 and is_null) or \
-            (currentState['file_amount'] == 0 and currentState['link_amount']==0)    :
+    def disabled(self,currentState,link_amount):
+        file_uploader_obj = FileUploader()
+        link_input_obj = LinkInput()
+
+        key_upload_files = file_uploader_obj.key_upload_files
+        max_upload_files = file_uploader_obj.max_upload_files
+
+        key_link_inputs = link_input_obj.key_link_inputs
+        all_null = link_input_obj.allNull(currentState,link_amount)
+
+        # ถูกแล้ว 
+        if currentState[key_upload_files] > max_upload_files or \
+            (currentState[key_upload_files] == 0 and all_null) or \
+            (currentState[key_upload_files] == 0 and currentState[key_link_inputs]==0):
             return True
         else:
             return False
  
-    
+# class TotalWidgetKey:
+
+#     def keyAmount(self,):
