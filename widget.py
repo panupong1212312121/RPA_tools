@@ -36,7 +36,4 @@ class SubmitButton:
             return True
         else:
             return False
- 
-# class TotalWidgetKey:
 
-#     def keyAmount(self,):

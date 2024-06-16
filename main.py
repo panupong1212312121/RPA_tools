@@ -81,11 +81,9 @@ st.button('Submit',
           on_click = lambda: extractTable_obj.run(uploaded_files,st.session_state,disabled_SubmitButton)) # Solution 
 
 ############################ Test & Next Steps ###########################
-#### Next Step : หาวิธีส่ง result ไปที่ some directory in each user x
+#### Next Step : after submit logic 
 
-#### Next Step : design logic Loading page 
-
-#### Next Step : ส่งเสร็จแล้ว ขึ้น (Finish) มีปุ่มให้เลือกว่า 'Click this button if you want to extract more' -> เมื่อ click กลับไปหน้าแรก 
+#### Next Step : # เวลา eatract table ให้มันไม่จำเป็นต้องสร้าง file ใหม่ 
 
 #### Next Step : # แจ้งเตือน toast ครั้งเดียวพอ 
 

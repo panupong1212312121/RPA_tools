@@ -8,25 +8,55 @@ from datetime import datetime
 
 import os
 
-class Transformer:
+class GenID:
 
-    ############### attribute #######################
     length_file_key_id = 10
+
+    datetime_today = datetime.now()
+
+    def datetimeKey(self):
+        year = self.datetime_today.strftime(("%Y"))
+        month = self.datetime_today.strftime(("%B"))
+        date = self.datetime_today.strftime(("%d"))
+        time = self.datetime_today.strftime(("%H_%M_%S"))
+        datetime = self.datetime_today.strftime(("%a-%d-%b-%Y_%H_%M_%S"))
+
+        # return dict
+        return [year,month,date,time,datetime]
+
+    def genFileKeyID(self,length_file_key_id):
+        # Define the character set for the ID (alphanumeric)
+        alphabet = string.ascii_lowercase + string.digits
+        alphabet_key = ''.join(random.choice(alphabet) for _ in range(length_file_key_id))
+
+        file_key_id = alphabet_key + '_'+ self.datetimeKey()[-1]
+
+        return file_key_id
+    
+class FolderOutputPath(GenID):
+        
+    def folderNameOutputPath(self):
+        folder_name_output_path = f'ExtractTable'
+        sub_folder = self.datetimeKey()[:-1]
+
+        desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+
+        folder_output_path = os.path.join(desktop_path, folder_name_output_path)
+
+        if not os.path.exists(folder_output_path):
+            os.makedirs(folder_output_path)
+
+        for folder in sub_folder:
+            folder_output_path = os.path.join(folder_output_path,str(folder))
+            if not os.path.exists(folder_output_path):
+                os.makedirs(folder_output_path)
+        
+        return folder_output_path
+        
+class Transformer(FolderOutputPath):
 
     keep_header = True
     keep_index = True
-
-    datetime_today = datetime.now()
-    datetime_key = datetime_today.strftime(("%a_%d_%b_%Y_%H_%M_%S"))
-
-    folder_name_output_path = f'ExtractTable ({datetime_key})'
-    #############################################
-
-    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
-    folder_output_path = os.path.join(desktop_path, folder_name_output_path)
-
-    if not os.path.exists(folder_output_path):
-        os.makedirs(folder_output_path)
     
     def toExcel(self,dfs,file_extension='',filename_input=''):
         if file_extension != '' and filename_input != '':
@@ -34,10 +64,10 @@ class Transformer:
 
             filename_output = f'{filename_input}_{file_key_id}.xlsx'
 
-            export_path = os.path.join(self.folder_output_path, filename_output)
+            export_path = os.path.join(self.folderNameOutputPath(), filename_output)
 
             if file_extension in ['png', 'jpg','jpeg']:
-                dfs.to_xlsx(filename_output)
+                dfs.to_xlsx(export_path)
 
             elif file_extension in ['pdf',
                                     'vnd.openxmlformats-officedocument.presentationml.presentation']:
@@ -73,7 +103,7 @@ class Transformer:
 
             for k,v in dfs.items():
                 filename_output = f'{k}_{file_key_id}.xlsx'
-                export_path = os.path.join(self.folder_output_path, filename_output)
+                export_path = os.path.join(self.folderNameOutputPath(), filename_output)
                 
                 with pd.ExcelWriter(export_path) as writer:
                     if len(v)>0:
@@ -85,7 +115,6 @@ class Transformer:
                                         header=self.keep_header)
                     else:
                         print("No detected Table")
-        print(export_path)
 
     def fileUtil(self,file,filename_input):
         in_memory_data = BytesIO(file.read())
@@ -94,10 +123,3 @@ class Transformer:
             outfile.write(in_memory_data.getvalue())
         return filename_output
     
-    def genFileKeyID(self,length):
-        # Define the character set for the ID (alphanumeric)
-        alphabet = string.ascii_lowercase + string.digits
-        alphabet_key = ''.join(random.choice(alphabet) for _ in range(length))
-
-        file_key_id = alphabet_key + '_'+ self.datetime_key
-        return file_key_id

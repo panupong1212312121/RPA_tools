@@ -73,7 +73,6 @@ class ExtractTable:
         dfs = {}
         for key in currentState:
             if 'link' in key and 'amount' not in key:
-                # ถ้า link ผิด -> เตือน , ไม่เจอ table  
                 try:
                     url_name = currentState[key]
                     df = pd.read_html(url_name)
