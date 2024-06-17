@@ -17,7 +17,10 @@ class LinkInput:
             return True
         else:
             return False
-class SubmitButton:
+class SaveButton:
+
+    key_disabled_save_button = 'disabled_save_button'
+    key_clicked_save_button = 'clicked_save_button'
 
     def disabled(self,currentState,link_amount):
         file_uploader_obj = FileUploader()
@@ -36,4 +39,9 @@ class SubmitButton:
             return True
         else:
             return False
+        
+class EditButton:
+
+    key_disabled_edit_button = 'disabled_edit_button'
+    key_clicked_edit_button = 'clicked_edit_button'
 

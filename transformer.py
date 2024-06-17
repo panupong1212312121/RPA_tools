@@ -1,3 +1,5 @@
+from img2table.ocr import EasyOCR
+
 import pandas as pd
 from io import BytesIO
     
@@ -58,7 +60,9 @@ class Transformer(FolderOutputPath):
     keep_header = True
     keep_index = True
     
-    def toExcel(self,dfs,file_extension='',filename_input=''):
+    def toExcel(self,dfs,file_extension='',filename_input='',all_url_name=''):
+        files_no_detected_table = []
+        urls_no_detected_table = []
         if file_extension != '' and filename_input != '':
             file_key_id = self.genFileKeyID(self.length_file_key_id)
 
@@ -67,12 +71,24 @@ class Transformer(FolderOutputPath):
             export_path = os.path.join(self.folderNameOutputPath(), filename_output)
 
             if file_extension in ['png', 'jpg','jpeg']:
-                dfs.to_xlsx(export_path)
+                ocr = EasyOCR(lang=['en','th'])
+                extracted_tables = dfs.extract_tables(ocr=ocr,
+                                                    implicit_rows=False,
+                                                    borderless_tables=False,
+                                                    min_confidence=50)
+                if len(extracted_tables)>0:
+                    dfs.to_xlsx(dest=export_path,
+                                ocr=ocr,
+                                implicit_rows=False,
+                                borderless_tables=False,
+                                min_confidence=50)
+                else:
+                    files_no_detected_table.append(filename_input)
 
             elif file_extension in ['pdf',
                                     'vnd.openxmlformats-officedocument.presentationml.presentation']:
-                with pd.ExcelWriter(export_path) as writer:
-                    if len(dfs)>0:
+                if len(dfs)>0:
+                    with pd.ExcelWriter(export_path) as writer:
                         for k,v in dfs.items():
                             for idx in range(len(v)):
                                 df = pd.DataFrame(v[idx])
@@ -80,21 +96,21 @@ class Transformer(FolderOutputPath):
                                             sheet_name=f'Page {k} - Table {idx+1}',
                                             index=self.keep_index,
                                             header=self.keep_header)
-                    else:
-                        print("No detected Table")
+                else:
+                    files_no_detected_table.append(filename_input)
 
             elif file_extension in ['vnd.openxmlformats-officedocument.wordprocessingml.document',
                                     ]:
-                with pd.ExcelWriter(export_path) as writer:
-                    if len(dfs)>0:
+                if len(dfs)>0:
+                    with pd.ExcelWriter(export_path) as writer:
                         for idx in range(len(dfs)):
                             df = pd.DataFrame(dfs[idx])
                             df.to_excel(writer, 
                                         sheet_name=f'Table {idx+1}',
                                         index=self.keep_index,
                                         header=self.keep_header)
-                    else:
-                        print("No detected Table")
+                else:
+                    files_no_detected_table.append(filename_input)
 
         else:
             #### Urls case #####
@@ -114,7 +130,63 @@ class Transformer(FolderOutputPath):
                                         index=self.keep_index,
                                         header=self.keep_header)
                     else:
-                        print("No detected Table")
+                        urls_no_detected_table.append(all_url_name[k])
+
+        return files_no_detected_table,urls_no_detected_table
+
+    def toTxt(self,files_no_detected_table,urls_no_detected_table,invalid_url_name=[]):
+
+        lenght = 60
+
+        datetime_key = self.datetimeKey()[-1]
+
+        sharp_format = '#'*lenght
+
+        header = f'{sharp_format}\n{datetime_key:^{lenght}}\n{sharp_format}\n'
+                
+        ########## write No table ##########
+        file_name_no_detected_table = f"files or urls have not detected table ({datetime_key}).txt"
+        export_path = os.path.join(self.folderNameOutputPath(), file_name_no_detected_table)
+        
+        body = ''
+        header_textfile = 'file'
+        header_texturl = 'link'
+
+        if len(files_no_detected_table) > 0 or len(files_no_detected_table) > 0:
+            if len(files_no_detected_table) > 0:
+                i = 1
+                body += f'\n{header_textfile:#^{int(lenght/2)}}'
+                for file in files_no_detected_table:
+                    body += f'\n{i}.\t{file}'
+                    i+=1
+
+            if len(urls_no_detected_table) > 0:
+                i = 1
+                body += f'\n{header_texturl:#^{int(lenght/2)}}'
+                for url in urls_no_detected_table:
+                    body += f'\n{i}.\t{url}'
+                    i+=1
+
+            with open(export_path, "w") as outfile:
+                detail = header+body
+                outfile.write(detail)
+
+        ########## write invalid url ##########
+        file_name_invalid_url = f"invalid link name ({datetime_key}).txt"
+        export_path = os.path.join(self.folderNameOutputPath(), file_name_invalid_url)
+        
+        body = ''
+        
+        if len(invalid_url_name) > 0:
+            i = 1
+            body += f'\n{header_texturl:#^{int(lenght/2)}}'
+            for invalid_url in invalid_url_name:
+                body += f'\n{i}.\t{invalid_url}'
+                i+=1
+
+            with open(export_path, "w") as outfile:
+                detail = header+body
+                outfile.write(detail)
 
     def fileUtil(self,file,filename_input):
         in_memory_data = BytesIO(file.read())
@@ -122,4 +194,9 @@ class Transformer(FolderOutputPath):
         with open(filename_output, "wb") as outfile:
             outfile.write(in_memory_data.getvalue())
         return filename_output
+
+    def deleteNewFile(self,filename_input):
+        curr_dir = os.getcwd()
+        path_delete = os.path.join(curr_dir,filename_input)
+        os.remove(path_delete)
     

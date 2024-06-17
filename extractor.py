@@ -7,7 +7,7 @@ from pptx import Presentation
 import pandas as pd
 
 from transformer import Transformer
-from widget import *
+from table_extractor import *
 
 import requests
 
@@ -71,24 +71,23 @@ class ExtractTable:
     
     def link(self,currentState):
         dfs = {}
+        all_url_name = {}
+        invalid_url_name = []
         for key in currentState:
             if 'link' in key and 'amount' not in key:
                 try:
                     url_name = currentState[key]
                     df = pd.read_html(url_name)
                     dfs[key] = df
+                    all_url_name[key] = url_name
                 # except requests.exceptions.HTTPError as err:
                 except:
-                    print(f'{url_name} is invalid name')
-        return dfs
+                    invalid_url_name.append(url_name)
+        return dfs,all_url_name,invalid_url_name
         
     def run(self,uploaded_files,currentState,all_null):
         transform_obj = Transformer()
-        ############## Loading Pages ################
 
-
-
-        ################################################
         if len(uploaded_files)>0:
             for file in uploaded_files:
 
@@ -106,12 +105,15 @@ class ExtractTable:
                 elif file_extension in ['vnd.openxmlformats-officedocument.presentationml.presentation']:
                     data = self.pptx(file_afterTransfrom)
 
-                transform_obj.toExcel(data,file_extension,filename_input)
+                files_no_detected_table,urls_no_detected_table = transform_obj.toExcel(data,file_extension,filename_input)
+                transform_obj.toTxt(files_no_detected_table,urls_no_detected_table)
+                transform_obj.deleteNewFile(filename_input)
 
-        if len(currentState)>2 and all_null==False:
-            data = self.link(currentState)
+        if len(currentState)>2 and not all_null:
+            data,all_url_name,invalid_url_name = self.link(currentState)
 
-            transform_obj.toExcel(data)
+            files_no_detected_table,urls_no_detected_table = transform_obj.toExcel(data,all_url_name=all_url_name)
+            transform_obj.toTxt(files_no_detected_table,urls_no_detected_table,invalid_url_name)
 
             
             
