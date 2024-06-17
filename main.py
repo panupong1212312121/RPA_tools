@@ -112,7 +112,7 @@ def tableExtractor():
                                     disabled = disabled_save_button or clicked_save_button) # Solution 
         
     clicked_edit_button = st.button('Edit',
-                                    disabled = disabled_edit_button or clicked_edit_button) # Solution 
+                                    disabled = disabled_save_button or disabled_edit_button or clicked_edit_button) # Solution 
         
     if clicked_save_button:
         st.session_state[key_clicked_save_button] = clicked_save_button
