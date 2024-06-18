@@ -114,7 +114,6 @@ class Transformer(FolderOutputPath):
 
         else:
             #### Urls case #####
-            ### finename_output ยังไงดีให้ชื่อไม่ยาวจนเกินไป #### 
             file_key_id = self.genFileKeyID(self.length_file_key_id)
 
             for k,v in dfs.items():
@@ -134,7 +133,7 @@ class Transformer(FolderOutputPath):
 
         return files_no_detected_table,urls_no_detected_table
 
-    def toTxt(self,files_no_detected_table,urls_no_detected_table,invalid_url_name=[]):
+    def toTxt(self,files_list_no_detected_table,urls_list_no_detected_table,invalid_url_list_name=[]):
 
         lenght = 60
 
@@ -145,25 +144,25 @@ class Transformer(FolderOutputPath):
         header = f'{sharp_format}\n{datetime_key:^{lenght}}\n{sharp_format}\n'
                 
         ########## write No table ##########
-        file_name_no_detected_table = f"files or urls have not detected table ({datetime_key}).txt"
+        file_name_no_detected_table = f"No detected table ({datetime_key}).txt"
         export_path = os.path.join(self.folderNameOutputPath(), file_name_no_detected_table)
         
         body = ''
         header_textfile = 'file'
         header_texturl = 'link'
 
-        if len(files_no_detected_table) > 0 or len(files_no_detected_table) > 0:
-            if len(files_no_detected_table) > 0:
+        if len(files_list_no_detected_table) > 0 or len(urls_list_no_detected_table) > 0:
+            if len(files_list_no_detected_table) > 0:
                 i = 1
                 body += f'\n{header_textfile:#^{int(lenght/2)}}'
-                for file in files_no_detected_table:
+                for file in files_list_no_detected_table:
                     body += f'\n{i}.\t{file}'
                     i+=1
 
-            if len(urls_no_detected_table) > 0:
+            if len(urls_list_no_detected_table) > 0:
                 i = 1
                 body += f'\n{header_texturl:#^{int(lenght/2)}}'
-                for url in urls_no_detected_table:
+                for url in urls_list_no_detected_table:
                     body += f'\n{i}.\t{url}'
                     i+=1
 
@@ -177,10 +176,10 @@ class Transformer(FolderOutputPath):
         
         body = ''
         
-        if len(invalid_url_name) > 0:
+        if len(invalid_url_list_name) > 0:
             i = 1
             body += f'\n{header_texturl:#^{int(lenght/2)}}'
-            for invalid_url in invalid_url_name:
+            for invalid_url in invalid_url_list_name:
                 body += f'\n{i}.\t{invalid_url}'
                 i+=1
 

@@ -6,10 +6,12 @@ from pptx import Presentation
 
 import pandas as pd
 
-from transformer import Transformer
-from table_extractor import *
+from algo.transformer import Transformer
+from ui.table_extractor import *
 
-import requests
+import streamlit as st
+
+from ui.table_extractor import FileUploader,SaveButton
 
 class ExtractTable:
     
@@ -71,25 +73,32 @@ class ExtractTable:
     
     def link(self,currentState):
         dfs = {}
-        all_url_name = {}
-        invalid_url_name = []
+        all_url_list_name = {}
+        invalid_url_list_name = []
         for key in currentState:
-            if 'link' in key and 'amount' not in key:
+            if 'url' in key and 'amount' not in key:
                 try:
                     url_name = currentState[key]
                     df = pd.read_html(url_name)
                     dfs[key] = df
-                    all_url_name[key] = url_name
-                # except requests.exceptions.HTTPError as err:
+                    all_url_list_name[key] = url_name
                 except:
-                    invalid_url_name.append(url_name)
-        return dfs,all_url_name,invalid_url_name
+                    invalid_url_list_name.append(url_name)
+        return dfs,all_url_list_name,invalid_url_list_name
         
-    def run(self,uploaded_files,currentState,all_null):
+    def run(self,currentState):
         transform_obj = Transformer()
+        file_uploader_obj = FileUploader()
+        save_button_obj = SaveButton()
 
-        if len(uploaded_files)>0:
-            for file in uploaded_files:
+        file_list = st.session_state.get(file_uploader_obj.key_file_list)
+        has_link = st.session_state.get(save_button_obj.key_criteria_data_save_button)
+
+        if len(file_list)>0:
+            files_list_no_detected_table = []
+            urls_list_no_detected_table = []
+
+            for file in file_list:
 
                 filename_input = file.name
                 file_extension = file.type.split('/')[-1].lower()
@@ -105,15 +114,26 @@ class ExtractTable:
                 elif file_extension in ['vnd.openxmlformats-officedocument.presentationml.presentation']:
                     data = self.pptx(file_afterTransfrom)
 
-                files_no_detected_table,urls_no_detected_table = transform_obj.toExcel(data,file_extension,filename_input)
-                transform_obj.toTxt(files_no_detected_table,urls_no_detected_table)
+                files_no_detected_table,urls_no_detected_table = transform_obj.toExcel(data,
+                                                                                       file_extension,
+                                                                                       filename_input)
+
+                files_list_no_detected_table.extend(files_no_detected_table)
+                urls_list_no_detected_table.extend(urls_no_detected_table)
+
                 transform_obj.deleteNewFile(filename_input)
 
-        if len(currentState)>2 and not all_null:
-            data,all_url_name,invalid_url_name = self.link(currentState)
+            transform_obj.toTxt(files_list_no_detected_table,
+                                urls_list_no_detected_table)
 
-            files_no_detected_table,urls_no_detected_table = transform_obj.toExcel(data,all_url_name=all_url_name)
-            transform_obj.toTxt(files_no_detected_table,urls_no_detected_table,invalid_url_name)
+        if len(currentState)>5 and has_link:
+            dfs,all_url_list_name,invalid_url_list_name = self.link(currentState)
+
+            files_list_no_detected_table,urls_list_no_detected_table = transform_obj.toExcel(dfs,
+                                                                                             all_url_name=all_url_list_name)
+            transform_obj.toTxt(files_list_no_detected_table,
+                                urls_list_no_detected_table,
+                                invalid_url_list_name)
 
             
             
