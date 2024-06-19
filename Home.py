@@ -15,3 +15,8 @@ After that ,please wait for results
 st.divider()
 
 st.write(recommendation)
+
+caution = '''
+If you finish process 1 time , I recommed you to click 'Home' menu and then refresh for begin again 
+'''
+st.warning(caution, icon="🚨")

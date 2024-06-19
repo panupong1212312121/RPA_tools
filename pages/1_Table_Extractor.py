@@ -1,21 +1,16 @@
 import streamlit as st
 
-from process.all_process import Process
 from process.data_input_from_user import DataInputFromUser
 
 from ui.table_extractor import ToolName,FileUploader,LinkInput,SaveButton
 
 ############################## Var ##############################
 
-tool_name_obj = ToolName()
-
-process_obj = Process()
-
 data_input_from_user_obj = DataInputFromUser()
 
+tool_name_obj = ToolName()
 file_uploader_obj = FileUploader()
 link_input_obj = LinkInput()
-
 save_button_obj = SaveButton()
 
 max_file_amount = file_uploader_obj.max_file_amount
@@ -75,7 +70,7 @@ with col1:
 
 with col2:   
 
-    st.caption(f'Choose your urls (Max : {max_url_amount})')
+    st.caption(f":black[Choose your urls (Max : {max_url_amount})]",unsafe_allow_html=False)
 
     with st.container(height = 100):
         for key in range(1,url_amount+1):
@@ -84,14 +79,16 @@ with col2:
     col3, col4 = st.columns(2)
     with col3:
         if st.button("Add Link Input",
-                    disabled=url_amount==max_url_amount):
+                    disabled=url_amount==max_url_amount,
+                    use_container_width=True):
             if url_amount < max_url_amount:
                 st.session_state[key_url_amount] += 1 
             st.rerun()
 
     with col4:
         if st.button("Remove Link Input",
-                    disabled=url_amount==min_url_amount):
+                    disabled=url_amount==min_url_amount,
+                    use_container_width=True):
             if url_amount > min_url_amount:
                 st.session_state[key_url_amount] -= 1
             st.rerun()
@@ -113,7 +110,7 @@ if clicked_save_button:
 if criteria_data_save_button and clicked_save_button:
     st.success('Already Saved')  
     table_extraction_input = data_input_from_user_obj.tableExtractor(st.session_state)
-    
-    process_obj.submitProcess(table_extraction_input,tool_name_obj.tool_name)
+
+    data_input_from_user_obj.submitProcess(table_extraction_input,tool_name_obj.tool_name)
 
 ############################################################

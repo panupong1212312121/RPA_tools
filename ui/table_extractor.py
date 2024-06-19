@@ -1,10 +1,12 @@
 import streamlit as st
 
 class ToolName:
-    tool_name = '1_Table_Extractor'
+    tool_name = 'Table_Extractor'
 
 class FileUploader:
     max_file_amount = 3
+
+    key_file_name = 'File'
 
     key_file_list = 'file_list'
     key_file_amount = 'file_amount'
@@ -13,6 +15,8 @@ class FileUploader:
 class LinkInput:
     min_url_amount = 0
     max_url_amount = 3
+
+    key_url_name = 'Url'
     
     key_url_amount = 'url_amount'
     key_changed_url = 'changed_url'
